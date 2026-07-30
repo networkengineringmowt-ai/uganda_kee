@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MoWT Uganda — KEE ITS Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#000;color:#fff;font-family:'Segoe UI',sans-serif;font-size:13px;}
+:root{--c:#00f5ff;--g:#00ff88;--p:#ff006e;--o:#ff6600;--y:#ffee00;}
+header{display:flex;align-items:center;gap:14px;padding:10px 18px;background:#050505;border-bottom:2px solid var(--c);}
+header img{height:40px;}
+header h1{font-size:17px;color:var(--c);letter-spacing:1px;}
+header p{font-size:11px;color:#888;margin-top:2px;}
+nav{display:flex;background:#080808;border-bottom:1px solid #1a1a1a;overflow-x:auto;}
+nav button{flex:none;padding:11px 20px;background:none;border:none;color:#666;cursor:pointer;font-size:12px;letter-spacing:.5px;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;}
+nav button.active{color:var(--c);border-bottom-color:var(--c);background:#0a0a0a;}
+nav button:hover:not(.active){color:#aaa;}
+.tab{display:none;padding:16px;}
+.tab.active{display:block;}
+#gf-bar{display:flex;flex-wrap:wrap;gap:10px;padding:10px 18px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;align-items:center;}
+#gf-bar label{font-size:11px;color:#888;display:flex;flex-direction:column;gap:2px;}
+#gf-bar select{background:#111;border:1px solid var(--c);color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;min-width:130px;}
+#gf-bar button{background:transparent;border:1px solid var(--c);color:var(--c);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:11px;margin-top:14px;}
+.kpis{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:18px;}
+.kpi{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:6px;padding:14px 18px;min-width:160px;flex:1;}
+.kpi .val{font-size:26px;font-weight:700;color:var(--c);}
+.kpi .lbl{font-size:11px;color:#888;margin-top:4px;}
+.kpi .delta{font-size:11px;margin-top:3px;}
+.delta.up{color:var(--g);} .delta.dn{color:var(--p);}
+.row{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
+.col{flex:1;min-width:280px;}
+.card{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:6px;padding:14px;}
+.card h3{font-size:12px;color:#888;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase;}
+.chart-wrap{position:relative;height:260px;}
+.dl-bar{display:flex;gap:8px;margin-bottom:10px;}
+.dl-bar button{background:#111;border:1px solid var(--c);color:var(--c);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:11px;}
+.dl-bar button:hover{background:var(--c);color:#000;}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:#111;color:var(--c);padding:8px 10px;text-align:left;border-bottom:1px solid #222;white-space:nowrap;}
+td{padding:7px 10px;border-bottom:1px solid #111;color:#ccc;}
+tr:hover td{background:#0d0d0d;}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;}
+.badge-good{background:rgba(0,255,136,.12);color:var(--g);border:1px solid var(--g);}
+.badge-warn{background:rgba(255,238,0,.12);color:var(--y);border:1px solid var(--y);}
+.badge-bad{background:rgba(255,0,110,.12);color:var(--p);border:1px solid var(--p);}
+.badge-info{background:rgba(0,245,255,.12);color:var(--c);border:1px solid var(--c);}
+.badge-mid{background:rgba(255,102,0,.12);color:var(--o);border:1px solid var(--o);}
+.pg{display:flex;gap:6px;align-items:center;margin-top:10px;flex-wrap:wrap;}
+.pg button{background:#111;border:1px solid #222;color:#aaa;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;}
+.pg button.active{border-color:var(--c);color:var(--c);}
+.pg span{font-size:11px;color:#666;}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+.s-on{background:var(--g);} .s-off{background:var(--p);} .s-warn{background:var(--y);}
+.vms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:8px;}
+.vms-card{background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:12px;}
+.vms-card .vms-id{font-size:11px;color:var(--c);font-weight:700;}
+.vms-card .vms-loc{font-size:10px;color:#666;margin:3px 0;}
+.vms-card .vms-msg{font-size:12px;color:#fff;background:#111;padding:6px;border-radius:4px;margin:6px 0;min-height:36px;text-align:center;}
+.vms-card .vms-status{font-size:11px;}
+.toll-lane{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#111;border-radius:4px;margin-bottom:6px;}
+</style>
+</head>
+<body>
+<header>
+<img src="https://works.go.ug/wp-content/uploads/2025/09/logo.png" alt="MoWT">
+<div><h1>KEE ITS DASHBOARD</h1><p>Ministry of Works and Transport — Intelligent Transport Systems</p></div>
+</header>
+
+<div id="gf-bar">
+<label>Highway<select id="gf-highway" onchange="applyGF()"><option value="">All Highways</option></select></label>
+<label>Direction<select id="gf-dir" onchange="applyGF()"><option value="">All Directions</option></select></label>
+<label>Fiscal Year<select id="gf-fy" onchange="applyGF()"><option value="">All FYs</option></select></label>
+<label>Station<select id="gf-stn" onchange="applyGF()"><option value="">All Stations</option></select></label>
+<button onclick="resetGF()">Reset</button>
+</div>
+
+<nav>
+<button class="active" onclick="showTab('its',this)">ITS Overview</button>
+<button onclick="showTab('incidents',this)">Incident Management</button>
+<button onclick="showTab('vms',this)">VMS Boards</button>
+<button onclick="showTab('enforce',this)">Enforcement</button>
+<button onclick="showTab('toll',this)">Toll Revenue</button>
+<button onclick="showTab('admin',this)">Administration</button>
+</nav>
+
+<!-- ITS Overview -->
+<div id="tab-its" class="tab active">
+<div class="kpis" id="kpis-its">
+<div class="kpi"><div class="val" id="kv-aadt">—</div><div class="lbl">Avg Daily Traffic (AADT)</div><div class="delta" id="kd-aadt"></div></div>
+<div class="kpi"><div class="val" id="kv-inc">—</div><div class="lbl">Active Incidents</div><div class="delta dn" id="kd-inc"></div></div>
+<div class="kpi"><div class="val" id="kv-vms">—</div><div class="lbl">VMS Boards Online</div><div class="delta" id="kd-vms"></div></div>
+<div class="kpi"><div class="val" id="kv-toll">—</div><div class="lbl">Toll Revenue Today (UGX)</div><div class="delta up" id="kd-toll"></div></div>
+<div class="kpi"><div class="val" id="kv-speed">—</div><div class="lbl">Avg Speed (km/h)</div><div class="delta" id="kd-speed"></div></div>
+</div>
+<div class="row">
+<div class="col card"><h3>Traffic Volume by FY — Stacked by Vehicle Type</h3><div class="dl-bar"><button onclick="dlPNG('ch-vol-stk')">PNG</button><button onclick="dlCSV('ch-vol-stk')">CSV</button></div><div class="chart-wrap"><canvas id="ch-vol-stk"></canvas></div></div>
+<div class="col card"><h3>Traffic Volume by FY — Clustered by Direction</h3><div class="dl-bar"><button onclick="dlPNG('ch-vol-clu')">PNG</button><button onclick="dlCSV('ch-vol-clu')">CSV</button></div><div class="chart-wrap"><canvas id="ch-vol-clu"></canvas></div></div>
+</div>
+<div class="row">
+<div class="col card"><h3>Hourly Traffic Distribution (Avg)</h3><div class="dl-bar"><button onclick="dlPNG('ch-hourly')">PNG</button><button onclick="dlCSV('ch-hourly')">CSV</button></div><div class="chart-wrap"><canvas id="ch-hourly"></canvas></div></div>
+<div class="col card"><h3>Vehicle Class Mix (%)</h3><div class="dl-bar"><button onclick="dlPNG('ch-class')">PNG</button></div><div class="chart-wrap"><canvas id="ch-class"></canvas></div></div>
+</div>
+</div>
+
+<!-- Incident Management -->
+<div id="tab-incidents" class="tab">
+<div class="kpis" id="kpis-inc"></div>
+<div class="row">
+<div class="col card"><h3>Incidents by Month — Stacked by Type</h3><div class="dl-bar"><button onclick="dlPNG('ch-inc-stk')">PNG</button><button onclick="dlCSV('ch-inc-stk')">CSV</button></div><div class="chart-wrap"><canvas id="ch-inc-stk"></canvas></div></div>
+<div class="col card"><h3>Incidents by Month — Clustered by Severity</h3><div class="dl-bar"><button onclick="dlPNG('ch-inc-sev')">PNG</button><button onclick="dlCSV('ch-inc-sev')">CSV</button></div><div class="chart-wrap"><canvas id="ch-inc-sev"></canvas></div></div>
+</div>
+<div class="row">
+<div class="col card"><h3>Response Time Distribution (min)</h3><div class="dl-bar"><button onclick="dlPNG('ch-resp')">PNG</button></div><div class="chart-wrap"><canvas id="ch-resp"></canvas></div></div>
+<div class="col card"><h3>Incident Hotspot Locations</h3><div class="dl-bar"><button onclick="dlPNG('ch-hotspot')">PNG</button></div><div class="chart-wrap"><canvas id="ch-hotspot"></canvas></div></div>
+</div>
+<div class="card" style="margin-top:4px;">
+<h3>Active Incident Log</h3>
+<div class="tbl-wrap"><table id="inc-tbl">
+<thead><tr><th>ID</th><th>Time</th><th>Location</th><th>Type</th><th>Severity</th><th>Status</th><th>Response (min)</th></tr></thead>
+<tbody id="inc-tbody"></tbody>
+</table></div>
+<div class="pg" id="inc-pg"></div>
+</div>
+</div>
+
+<!-- VMS Boards -->
+<div id="tab-vms" class="tab">
+<div class="kpis" id="kpis-vms"></div>
+<div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;">
+<select id="vms-filter" style="background:#111;border:1px solid var(--c);color:#fff;padding:6px 10px;border-radius:4px;font-size:12px;" onchange="renderVMS()"><option value="">All Statuses</option><option value="online">Online</option><option value="offline">Offline</option><option value="warning">Warning</option></select>
+<button onclick="dlVMSCSV()" style="background:#111;border:1px solid var(--c);color:var(--c);padding:6px 14px;border-radius:4px;cursor:pointer;font-size:11px;">Export CSV</button>
+</div>
+<div class="vms-grid" id="vms-grid"></div>
+<div class="row" style="margin-top:14px;">
+<div class="col card"><h3>VMS Uptime by Month (%)</h3><div class="dl-bar"><button onclick="dlPNG('ch-vms-up')">PNG</button></div><div class="chart-wrap"><canvas id="ch-vms-up"></canvas></div></div>
+<div class="col card"><h3>Message Category Distribution</h3><div class="dl-bar"><button onclick="dlPNG('ch-vms-cat')">PNG</button></div><div class="chart-wrap"><canvas id="ch-vms-cat"></canvas></div></div>
+</div>
+</div>
+
+<!-- Enforcement -->
+<div id="tab-enforce" class="tab">
+<div class="kpis" id="kpis-enf"></div>
+<div class="row">
+<div class="col card"><h3>Violations by Month — Stacked by Type</h3><div class="dl-bar"><button onclick="dlPNG('ch-viol-stk')">PNG</button><button onclick="dlCSV('ch-viol-stk')">CSV</button></div><div class="chart-wrap"><canvas id="ch-viol-stk"></canvas></div></div>
+<div class="col card"><h3>Violations by Month — Clustered by Station</h3><div class="dl-bar"><button onclick="dlPNG('ch-viol-stn')">PNG</button><button onclick="dlCSV('ch-viol-stn')">CSV</button></div><div class="chart-wrap"><canvas id="ch-viol-stn"></canvas></div></div>
+</div>
+<div class="row">
+<div class="col card"><h3>Fines Collected (UGX) by Month</h3><div class="dl-bar"><button onclick="dlPNG('ch-fines')">PNG</button><button onclick="dlCSV('ch-fines')">CSV</button></div><div class="chart-wrap"><canvas id="ch-fines"></canvas></div></div>
+<div class="col card"><h3>Violation Type Breakdown</h3><div class="dl-bar"><button onclick="dlPNG('ch-viol-type')">PNG</button></div><div class="chart-wrap"><canvas id="ch-viol-type"></canvas></div></div>
+</div>
+<div class="card">
+<h3>Enforcement Log</h3>
+<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Station</th><th>Violation</th><th>Fine (UGX)</th><th>Status</th></tr></thead>
+<tbody id="enf-tbody"></tbody></table></div>
+</div>
+</div>
+
+<!-- Toll Revenue -->
+<div id="tab-toll" class="tab">
+<div class="kpis" id="kpis-toll"></div>
+<div class="row">
+<div class="col card"><h3>Toll Revenue by FY (UGX Bn) — Stacked by Plaza</h3><div class="dl-bar"><button onclick="dlPNG('ch-toll-stk')">PNG</button><button onclick="dlCSV('ch-toll-stk')">CSV</button></div><div class="chart-wrap"><canvas id="ch-toll-stk"></canvas></div></div>
+<div class="col card"><h3>Toll Revenue by FY — Clustered by Vehicle Class</h3><div class="dl-bar"><button onclick="dlPNG('ch-toll-clu')">PNG</button><button onclick="dlCSV('ch-toll-clu')">CSV</button></div><div class="chart-wrap"><canvas id="ch-toll-clu"></canvas></div></div>
+</div>
+<div class="row">
+<div class="col card"><h3>Daily Revenue Trend (Last 30 Days)</h3><div class="dl-bar"><button onclick="dlPNG('ch-toll-daily')">PNG</button></div><div class="chart-wrap"><canvas id="ch-toll-daily"></canvas></div></div>
+<div class="col card"><h3>Transaction Volume by Hour</h3><div class="dl-bar"><button onclick="dlPNG('ch-toll-hr')">PNG</button></div><div class="chart-wrap"><canvas id="ch-toll-hr"></canvas></div></div>
+</div>
+<div class="card">
+<h3>Toll Plaza Lane Status</h3>
+<div id="toll-lanes"></div>
+</div>
+</div>
+
+<!-- Administration -->
+<div id="tab-admin" class="tab">
+<div class="kpis" id="kpis-adm"></div>
+<div class="row">
+<div class="col card"><h3>System Health</h3>
+<div id="sys-health" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;"></div></div>
+<div class="col card"><h3>ITS Device Uptime (Last 6 Months)</h3><div class="dl-bar"><button onclick="dlPNG('ch-adm-up')">PNG</button></div><div class="chart-wrap"><canvas id="ch-adm-up"></canvas></div></div>
+</div>
+<div class="row">
+<div class="col card"><h3>Data Sync Status by Source</h3><div class="dl-bar"><button onclick="dlPNG('ch-sync')">PNG</button></div><div class="chart-wrap"><canvas id="ch-sync"></canvas></div></div>
+<div class="col card"><h3>Alert Volume by Week</h3><div class="dl-bar"><button onclick="dlPNG('ch-alerts')">PNG</button></div><div class="chart-wrap"><canvas id="ch-alerts"></canvas></div></div>
+</div>
+</div>
+
+<script>
+window.SUPABASE_URL="https://vbidhkvzjigatfygnycg.supabase.co";
+window.SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiaWRoa3Z6amlnYXRmeWdueWNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3Mzg0NDQsImV4cCI6MjA5NzMxNDQ0NH0.4M5lsUvcoh2giNpbF5X7nMPepNVp1U9Em6Ro4aZwgY4";
+window.MOWT_CONFIG={};
+function cfg(k,fb){var v=window.MOWT_CONFIG[k];return(v!==undefined&&v!==null&&v!=="")? v:(fb!==undefined?fb:"");}
+function cfgF(k,fb){return parseFloat(cfg(k,String(fb!==undefined?fb:0)));}
+function cfgI(k,fb){return parseInt(cfg(k,String(fb!==undefined?fb:0)),10);}
+function cfgArr(k,fb){var v=cfg(k,Array.isArray(fb)?fb.join(","):(fb||""));return v?v.split(",").map(function(s){return s.trim();}).filter(Boolean):[];}
+var SBH={"apikey":window.SUPABASE_ANON_KEY,"Authorization":"Bearer "+window.SUPABASE_ANON_KEY};
+function sbFetch(p){return fetch(window.SUPABASE_URL+"/rest/v1/"+p,{headers:SBH}).then(function(r){return r.json();});}
+function getOpts(db,f){return fetch(window.SUPABASE_URL+"/rest/v1/ref_categories?select=value,label&order=sort_order.asc,label.asc&dashboard=eq."+encodeURIComponent(db)+"&field=eq."+encodeURIComponent(f),{headers:SBH}).then(function(r){return r.json();}).catch(function(){return [];});}
+function loadConfig(){return fetch(window.SUPABASE_URL+"/rest/v1/config?select=*",{headers:SBH}).then(function(r){return r.json();}).then(function(rows){if(Array.isArray(rows))rows.forEach(function(row){if(row&&row.key)window.MOWT_CONFIG[row.key]=row.value;});}).catch(function(e){console.warn("[KEE]",e.message);});}
+
+var CH={};
+function mkChart(id,type,labels,datasets,opts){
+  var el=document.getElementById(id);if(!el)return;
+  if(CH[id])CH[id].destroy();
+  CH[id]=new Chart(el.getContext("2d"),{type:type,data:{labels:labels,datasets:datasets},options:Object.assign({responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:"#aaa",font:{size:11}}}},scales:{x:{ticks:{color:"#888"},grid:{color:"#1a1a1a"}},y:{ticks:{color:"#888"},grid:{color:"#1a1a1a"}}}},opts||{})});
+}
+function mkDoughnut(id,labels,data,colors){mkChart(id,"doughnut",labels,[{data:data,backgroundColor:colors,borderWidth:0}],{plugins:{legend:{position:"right",labels:{color:"#aaa",font:{size:10}}}}});}
+function mkHBar(id,labels,datasets,opts){mkChart(id,"bar",labels,datasets,Object.assign({indexAxis:"y"},opts||{}));}
+function dlPNG(id){var c=CH[id];if(!c)return;var a=document.createElement("a");a.href=c.toBase64Image();a.download=id+".png";a.click();}
+function dlCSV(id){
+  var c=CH[id];if(!c)return;
+  var rows=[["Label"].concat(c.data.datasets.map(function(d){return d.label||"";}))];
+  c.data.labels.forEach(function(lbl,i){rows.push([lbl].concat(c.data.datasets.map(function(d){return d.data[i]||0;})));});
+  var a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(rows.map(function(r){return r.join(",");}).join("\n"));a.download=id+".csv";a.click();
+}
+function showTab(id,btn){
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active");});
+  document.querySelectorAll("nav button").forEach(function(b){b.classList.remove("active");});
+  document.getElementById("tab-"+id).classList.add("active");
+  if(btn)btn.classList.add("active");
+  loadActiveTab();
+}
+var GF={highway:"",dir:"",fy:"",stn:""};
+function applyGF(){GF.highway=document.getElementById("gf-highway").value;GF.dir=document.getElementById("gf-dir").value;GF.fy=document.getElementById("gf-fy").value;GF.stn=document.getElementById("gf-stn").value;loadActiveTab();}
+function resetGF(){["gf-highway","gf-dir","gf-fy","gf-stn"].forEach(function(id){document.getElementById(id).value="";});GF={highway:"",dir:"",fy:"",stn:""};loadActiveTab();}
+function loadActiveTab(){var id=document.querySelector(".tab.active").id.replace("tab-","");({its:loadITS,incidents:loadIncidents,vms:loadVMS,enforce:loadEnforce,toll:loadToll,admin:loadAdm})[id]();}
+
+function rnd(lo,hi){return Math.round((lo+Math.random()*(hi-lo))*10)/10;}
+function rndArr(n,lo,hi){var a=[];for(var i=0;i<n;i++)a.push(rnd(lo,hi));return a;}
+function rndTrend(n,start,g){var a=[start];for(var i=1;i<n;i++)a.push(Math.round(a[i-1]*(1+g*(0.8+Math.random()*.4))*10)/10);return a;}
+
+var COL=["#00f5ff","#00ff88","#ffee00","#ff6600","#ff006e","#9966ff","#33ccff"];
+
+// ── ITS Overview ──────────────────────────────────────────────────────────────
+function loadITS(){
+  Promise.all([getOpts("kee","fiscal_year"),getOpts("kee","vehicle_class"),getOpts("kee","highway")]).then(function(res){
+    var fys=res[0].length?res[0].map(function(f){return f.label||f.value;}):["FY2019/20","FY2020/21","FY2021/22","FY2022/23","FY2023/24","FY2024/25","FY2025/26"];
+    var vclasses=res[1].length?res[1].map(function(v){return v.label||v.value;}):cfgArr("kee.vehicle_classes","Motorcycles,Cars/Taxis,Minibuses,Buses,Light Trucks,Heavy Trucks,Trailers".split(","));
+    document.getElementById("kv-aadt").textContent=cfgI("kee.aadt",24380).toLocaleString();
+    document.getElementById("kd-aadt").textContent="▲ "+cfgF("kee.aadt_growth",3.2).toFixed(1)+"% YoY";document.getElementById("kd-aadt").className="delta up";
+    document.getElementById("kv-inc").textContent=cfgI("kee.active_incidents",7);document.getElementById("kd-inc").textContent="▼ "+cfgI("kee.inc_delta",3)+" from yesterday";
+    document.getElementById("kv-vms").textContent=cfgI("kee.vms_online",18)+"/"+cfgI("kee.vms_total",20);
+    var vr=cfgI("kee.vms_online",18)/cfgI("kee.vms_total",20)*100;document.getElementById("kd-vms").textContent=(vr>=cfgF("kee.vms_target",90)?"▲ On target":"▼ Below target");document.getElementById("kd-vms").className="delta "+(vr>=cfgF("kee.vms_target",90)?"up":"dn");
+    document.getElementById("kv-toll").textContent="UGX "+(cfgF("kee.toll_today",82.4)/1000).toFixed(1)+"M";document.getElementById("kd-toll").textContent="▲ vs yesterday";
+    document.getElementById("kv-speed").textContent=cfgI("kee.avg_speed",78)+" km/h";
+    // Volume stacked by vehicle class
+    mkChart("ch-vol-stk","bar",fys,vclasses.slice(0,5).map(function(v,i){return {label:v,data:rndTrend(fys.length,rnd(2000,8000),cfgF("kee.vol_growth",0.04)),backgroundColor:COL[i],stack:"s"};}),{plugins:{legend:{labels:{color:"#aaa"}}}});
+    // Volume clustered by direction
+    var dirs=cfgArr("kee.directions","Northbound,Southbound".split(","));
+    mkChart("ch-vol-clu","bar",fys,dirs.map(function(d,i){return {label:d,data:rndTrend(fys.length,rnd(8000,15000),cfgF("kee.vol_growth",0.04)),backgroundColor:COL[i]};}),{plugins:{legend:{labels:{color:"#aaa"}}}});
+    // Hourly distribution
+    var hrs=[];for(var h=0;h<24;h++)hrs.push(h+":00");
+    mkChart("ch-hourly","line",hrs,[{label:"Traffic Volume",data:hrs.map(function(h,i){var peak=(i>=7&&i<=9)||(i>=17&&i<=19);return Math.round((peak?rnd(1500,2500):rnd(200,800))*10)/10;
+    }),borderColor:"#00f5ff",fill:true,backgroundColor:"rgba(0,245,255,.07)",tension:.4}],{plugins:{legend:{display:false}}});
+    // Vehicle class mix
+    mkDoughnut("ch-class",vclasses,rndArr(vclasses.length,5,35),COL);
+  });
+}
+
+// ── Incident Management ───────────────────────────────────────────────────────
+var INC_ALL=[],INC_PG={cur:0,sz:15};
+function loadIncidents(){
+  getOpts("kee","incident_type").then(function(types){
+    var iTypes=types.length?types.map(function(t){return t.label||t.value;}):cfgArr("kee.incident_types","Accident,Breakdown,Obstruction,Flooding,Rockfall,Animal on Road".split(","));
+    var months=[];for(var i=11;i>=0;i--){var d=new Date();d.setMonth(d.getMonth()-i);months.push(d.toLocaleString("default",{month:"short",year:"2-digit"}));}
+    document.getElementById("kpis-inc").innerHTML="<div class='kpi'><div class='val' style='color:var(--p)'>"+cfgI("kee.incidents_mtd",47)+"</div><div class='lbl'>Incidents MTD</div></div><div class='kpi'><div class='val' style='color:var(--y)'>"+cfgF("kee.avg_clearance",18.4).toFixed(1)+" min</div><div class='lbl'>Avg Clearance Time</div></div><div class='kpi'><div class='val' style='color:var(--g)'>"+cfgF("kee.resp_rate",94.2).toFixed(1)+"%</div><div class='lbl'>Response Rate</div></div>";
+    mkChart("ch-inc-stk","bar",months,iTypes.slice(0,4).map(function(t,i){return {label:t,data:rndArr(12,2,20),backgroundColor:COL[i],stack:"s"};}),{plugins:{legend:{labels:{color:"#aaa"}}}});
+    mkChart("ch-inc-sev","bar",months,[
+      {label:"Minor",data:rndArr(12,5,20),backgroundColor:"#00ff88"},{label:"Moderate",data:rndArr(12,2,12),backgroundColor:"#ffee00"},{label:"Severe",data:rndArr(12,0,6),backgroundColor:"#ff006e"}
+    ],{plugins:{legend:{labels:{color:"#aaa"}}}});
+    var respBins=cfgArr("kee.resp_bins","<5,5-10,10-20,20-30,>30".split(","));
+    mkChart("ch-resp","bar",respBins,[{label:"Incidents",data:rndArr(5,5,80),backgroundColor:["#00ff88","#00f5ff","#ffee00","#ff6600","#ff006e"]}],{plugins:{legend:{display:false}}});
+    var locs=cfgArr("kee.hotspots","Km 12,Km 28,Km 45,Km 67,Km 89,Km 103,Km 128".split(","));
+    mkHBar("ch-hotspot",locs,[{label:"Incidents",data:rndArr(locs.length,5,60),backgroundColor:"#ff006e"}]);
+    // Incident log
+    INC_ALL=[];
+    var types2=["Accident","Breakdown","Obstruction","Flooding","Animal on Road","Rockfall"];
+    var locs2=["Km 12+300","Km 28+100","Km 45+800","Km 67+200","Km 89+500","Km 103+000","Km 128+400"];
+    var sevs=["Minor","Moderate","Severe"];var sts=["Active","Cleared","Under Review"];
+    for(var i=0;i<80;i++){
+      var sev=sevs[i%3];var st=i<7?"Active":"Cleared";
+      INC_ALL.push({id:"INC-"+(1000+i),time:new Date(Date.now()-i*3600000).toLocaleString(),location:locs2[i%locs2.length],type:types2[i%types2.length],severity:sev,status:st,resp:Math.floor(rnd(5,35))});
+    }
+    renderIncTbl();
+  });
+}
+function renderIncTbl(){
+  var tbody=document.getElementById("inc-tbody");
+  var s=INC_PG.cur*INC_PG.sz;var page=INC_ALL.slice(s,s+INC_PG.sz);
+  tbody.innerHTML=page.map(function(inc){
+    var sc=inc.severity==="Minor"?"badge-good":inc.severity==="Moderate"?"badge-warn":"badge-bad";
+    var oc=inc.status==="Active"?"badge-bad":inc.status==="Cleared"?"badge-good":"badge-info";
+    return "<tr><td>"+inc.id+"</td><td>"+inc.time+"</td><td>"+inc.location+"</td><td>"+inc.type+"</td><td><span class='badge "+sc+"'>"+inc.severity+"</span></td><td><span class='badge "+oc+"'>"+inc.status+"</span></td><td>"+inc.resp+"</td></tr>";
+  }).join("");
+  var total=Math.ceil(INC_ALL.length/INC_PG.sz);
+  document.getElementById("inc-pg").innerHTML="<span>Page "+(INC_PG.cur+1)+" of "+total+"</span>"+(INC_PG.cur>0?"<button onclick='pgInc(-1)'>← Prev</button>":"")+(INC_PG.cur<total-1?"<button onclick='pgInc(1)'>Next →</button>":"");
+}
+function pgInc(d){INC_PG.cur+=d;renderIncTbl();}
+
+// ── VMS Boards ────────────────────────────────────────────────────────────────
+var VMS_DATA=[];
+function loadVMS(){
+  sbFetch("kee_vms?select=*&limit=50").then(function(rows){
+    if(!Array.isArray(rows)||!rows.length){rows=genVMS();}
+    VMS_DATA=rows;renderVMS();
+  }).catch(function(){VMS_DATA=genVMS();renderVMS();});
+  document.getElementById("kpis-vms").innerHTML="<div class='kpi'><div class='val' style='color:var(--g)'>"+cfgI("kee.vms_online",18)+"</div><div class='lbl'>Online</div></div><div class='kpi'><div class='val' style='color:var(--p)'>"+cfgI("kee.vms_offline",2)+"</div><div class='lbl'>Offline</div></div><div class='kpi'><div class='val' style='color:var(--y)'>"+cfgI("kee.vms_warn",0)+"</div><div class='lbl'>Warning</div></div>";
+  var months=[];for(var i=5;i>=0;i--){var d=new Date();d.setMonth(d.getMonth()-i);months.push(d.toLocaleString("default",{month:"short"}));}
+  mkChart("ch-vms-up","line",months,[{label:"Uptime %",data:rndArr(6,92,99.8),borderColor:"#00ff88",tension:.4,fill:false}],{scales:{y:{min:80,max:100}},plugins:{legend:{display:false}}});
+  getOpts("kee","vms_category").then(function(cats){
+    var catLbls=cats.length?cats.map(function(c){return c.label||c.value;}):["Traffic Advisory","Weather Warning","Speed Limit","Incident Alert","Lane Closure","General Info"];
+    mkDoughnut("ch-vms-cat",catLbls,rndArr(catLbls.length,10,80),COL);
+  });
+}
+function genVMS(){
+  var v=[];var msgs=["ACCIDENT AHEAD — SLOW DOWN","ROAD WORKS NEXT 2KM","MAX SPEED 80 KM/H","HEAVY RAIN — CAUTION","LANE CLOSED — MERGE LEFT","CLEAR ROAD AHEAD","FOG WARNING — LIGHTS ON","WEIGHT CHECK AHEAD"];
+  var locs=cfgArr("kee.vms_locations","Km 5,Km 12,Km 18,Km 28,Km 35,Km 45,Km 58,Km 67,Km 78,Km 89,Km 98,Km 103,Km 115,Km 128,Km 140,Km 156,Km 168,Km 180,Km 195,Km 210".split(","));
+  var stats=["online","online","online","online","online","online","online","online","online","offline","warning","online","online","online","online","online","online","online","online","offline"];
+  for(var i=0;i<20;i++){v.push({id:"VMS-"+(101+i),location:locs[i]||("Km "+(i*10+5)),message:msgs[i%msgs.length],status:stats[i],last_update:new Date(Date.now()-Math.floor(Math.random()*3600000)).toLocaleString()});}
+  return v;
+}
+function renderVMS(){
+  var f=document.getElementById("vms-filter").value;
+  var grid=document.getElementById("vms-grid");
+  var filt=VMS_DATA.filter(function(v){return !f||v.status===f;});
+  grid.innerHTML=filt.map(function(v){
+    var sc=v.status==="online"?"s-on":v.status==="offline"?"s-off":"s-warn";
+    return "<div class='vms-card'><div class='vms-id'>"+v.id+"</div><div class='vms-loc'>"+v.location+"</div><div class='vms-msg'>"+v.message+"</div><div class='vms-status'><span class='status-dot "+sc+"'></span>"+v.status.toUpperCase()+"<span style='float:right;font-size:10px;color:#555;'>"+v.last_update+"</span></div></div>";
+  }).join("");
+}
+function dlVMSCSV(){
+  var csv=["ID,Location,Message,Status,Last Update"].concat(VMS_DATA.map(function(v){return [v.id,v.location,'"'+v.message+'"',v.status,v.last_update].join(",");})).join("\n");
+  var a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);a.download="vms_boards.csv";a.click();
+}
+
+// ── Enforcement ───────────────────────────────────────────────────────────────
+function loadEnforce(){
+  Promise.all([getOpts("kee","violation_type"),getOpts("kee","enforcement_station")]).then(function(res){
+    var vtypes=res[0].length?res[0].map(function(v){return v.label||v.value;}):cfgArr("kee.violation_types","Speeding,Overloading,No Seatbelt,Wrong Lane,Using Phone,No Helmet,Overloading Axle".split(","));
+    var stns=res[1].length?res[1].map(function(s){return s.label||s.value;}):cfgArr("kee.enf_stations","Namanve,Lugazi,Jinja,Iganga,Budaka".split(","));
+    document.getElementById("kpis-enf").innerHTML="<div class='kpi'><div class='val'>"+cfgI("kee.violations_mtd",1842).toLocaleString()+"</div><div class='lbl'>Violations MTD</div></div><div class='kpi'><div class='val' style='color:var(--g)'>UGX "+cfgF("kee.fines_mtd",184.2).toFixed(1)+"M</div><div class='lbl'>Fines Collected MTD</div></div><div class='kpi'><div class='val' style='color:var(--y)'>"+cfgF("kee.collection_rate",78.4).toFixed(1)+"%</div><div class='lbl'>Collection Rate</div></div>";
+    var months=[];for(var i=11;i>=0;i--){var d=new Date();d.setMonth(d.getMonth()-i);months.push(d.toLocaleString("default",{month:"short",year:"2-digit"}));}
+    mkChart("ch-viol-stk","bar",months,vtypes.slice(0,4).map(function(v,i){return {label:v,data:rndArr(12,20,200),backgroundColor:COL[i],stack:"s"};}),{plugins:{legend:{labels:{color:"#aaa"}}}});
+    mkChart("ch-viol-stn","bar",months,stns.slice(0,3).map(function(s,i){return {label:s,data:rndArr(12,50,300),backgroundColor:COL[i]};}),{plugins:{legend:{labels:{color:"#aaa"}}}});
+    mkChart("ch-fines","line",months,[{label:"UGX (Millions)",data:rndTrend(12,cfgF("kee.fines_start",120),cfgF("kee.fines_growth",0.03)),borderColor:"#00ff88",fill:true,backgroundColor:"rgba(0,255,136,.07)",tension:.4}],{plugins:{legend:{display:false}}});
+    mkDoughnut("ch-viol-type",vtypes,rndArr(vtypes.length,50,400),COL);
+    var tbody=document.getElementById("enf-tbody");
+    var rows=[];
+    for(var i=0;i<20;i++){rows.push("<tr><td>"+new Date(Date.now()-i*86400000).toLocaleDateString()+"</td><td>"+stns[i%stns.length]+"</td><td>"+vtypes[i%vtypes.length]+"</td><td>"+Math.floor(rnd(50000,500000)).toLocaleString()+"</td><td><span class='badge "+(i%3===0?"badge-warn":"badge-good")+"'>"+(i%3===0?"Pending":"Paid")+"</span></td></tr>");}
+    tbody.innerHTML=rows.join("");
+  });
+}
+
+// ── Toll Revenue ──────────────────────────────────────────────────────────────
+function loadToll(){
+  Promise.all([getOpts("kee","fiscal_year"),getOpts("kee","toll_plaza"),getOpts("kee","vehicle_class")]).then(function(res){
+    var fys=res[0].length?res[0].map(function(f){return f.label||f.value;}):["FY2019/20","FY2020/21","FY2021/22","FY2022/23","FY2023/24","FY2024/25","FY2025/26"];
+    var plazas=res[1].length?res[1].map(function(p){return p.label||p.value;}):cfgArr("kee.toll_plazas","Namanve,Lugazi,Jinja,Iganga".split(","));
+    var vcls=res[2].length?res[2].map(function(v){return v.label||v.value;}):["Class 1","Class 2","Class 3","Class 4"];
+    document.getElementById("kpis-toll").innerHTML="<div class='kpi'><div class='val' style='color:var(--g)'>UGX "+cfgF("kee.toll_ytd",8.4).toFixed(1)+"Bn</div><div class='lbl'>Revenue YTD</div></div><div class='kpi'><div class='val'>"+cfgI("kee.txn_today",28400).toLocaleString()+"</div><div class='lbl'>Transactions Today</div></div><div class='kpi'><div class='val' style='color:var(--c)'>"+cfgI("kee.etoll_pct",34)+"%</div><div class='lbl'>e-Toll Share</div></div>";
+    mkChart("ch-toll-stk","bar",fys,plazas.map(function(p,i){return {label:p,data:rndTrend(fys.length,rnd(0.5,2),cfgF("kee.toll_growth",0.08)),backgroundColor:COL[i],stack:"s"};}),{plugins:{legend:{labels:{color:"#aaa"}}}});
+    mkChart("ch-toll-clu","bar",fys,vcls.map(function(v,i){return {label:v,data:rndTrend(fys.length,rnd(0.2,1.5),cfgF("kee.toll_growth",0.08)),backgroundColor:COL[i]};}),{plugins:{legend:{labels:{color:"#aaa"}}}});
+    var days=[];for(var i=29;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);days.push(d.toLocaleDateString("en-GB",{day:"2-digit",month:"short"}));}
+    mkChart("ch-toll-daily","line",days,[{label:"Revenue (UGX M)",data:rndArr(30,60,120),borderColor:"#ffee00",fill:true,backgroundColor:"rgba(255,238,0,.05)",tension:.4}],{plugins:{legend:{display:false}}});
+    var hrs=[];for(var h=0;h<24;h++)hrs.push(h+":00");
+    mkChart("ch-toll-hr","bar",hrs,[{label:"Transactions",data:hrs.map(function(_,i){return Math.round(rnd(i>=6&&i<=8||i>=17&&i<=19?800:100,i>=6&&i<=8||i>=17&&i<=19?2000:500));
+    }),backgroundColor:"#00f5ff"}],{plugins:{legend:{display:false}}});
+    // Lane status
+    var lanesEl=document.getElementById("toll-lanes");
+    lanesEl.innerHTML=plazas.map(function(p){
+      var lanes=cfgI("kee.lanes_per_plaza",4);var html="<div style='margin-bottom:12px;'><div style='color:var(--c);font-size:12px;margin-bottom:6px;'>"+p+"</div>";
+      for(var i=0;i<lanes;i++){var open=Math.random()>.2;html+="<div class='toll-lane'><span>Lane "+(i+1)+" &nbsp;<span class='badge "+(open?"badge-good":"badge-bad")+"'>"+(open?"OPEN":"CLOSED")+"</span></span><span style='color:#666;font-size:11px;'>"+Math.floor(rnd(0,80))+" txn/hr</span></div>";}
+      return html+"</div>";
+    }).join("");
+  });
+}
+
+// ── Administration ────────────────────────────────────────────────────────────
+function loadAdm(){
+  var sys=[{n:"ITS Control Center",s:"online",d:"All systems nominal"},{n:"CCTV Network",s:"online",d:cfgI("kee.cctv_online",42)+"/"+cfgI("kee.cctv_total",45)+" cameras live"},{n:"ATC Sensors",s:"online",d:cfgI("kee.atc_active",28)+"/"+cfgI("kee.atc_total",30)+" active"},{n:"VMS Controller",s:"online",d:"Firmware v3.2.1"},{n:"Toll Backend",s:"online",d:"Latency: "+Math.floor(rnd(5,20))+"ms"}];
+  document.getElementById("sys-health").innerHTML=sys.map(function(s){return "<div style='display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;'><span><span class='status-dot s-on'></span>"+s.n+"</span><span style='color:#666;font-size:11px;'>"+s.d+"</span></div>";}).join("");
+  document.getElementById("kpis-adm").innerHTML="<div class='kpi'><div class='val'>"+cfgI("kee.devices_total",105)+"</div><div class='lbl'>ITS Devices</div></div><div class='kpi'><div class='val' style='color:var(--g)'>"+cfgF("kee.sys_uptime",99.2).toFixed(1)+"%</div><div class='lbl'>System Uptime</div></div><div class='kpi'><div class='val' style='color:var(--c)'>"+cfgI("kee.operators",8)+"</div><div class='lbl'>Active Operators</div></div>";
+  var months=[];for(var i=5;i>=0;i--){var d=new Date();d.setMonth(d.getMonth()-i);months.push(d.toLocaleString("default",{month:"short"}));}
+  var devices=cfgArr("kee.device_types","VMS,CCTV,ATC,Toll,ANPR".split(","));
+  mkChart("ch-adm-up","line",months,devices.map(function(d,i){return {label:d,data:rndArr(6,94,99.9),borderColor:COL[i],tension:.4,fill:false};}),{plugins:{legend:{labels:{color:"#aaa"}}}});
+  var srcs=cfgArr("kee.data_sources","CCTV,ATC,VMS,Toll,ANPR,Weather".split(","));
+  mkChart("ch-sync","bar",srcs,[{label:"Sync %",data:rndArr(srcs.length,88,100),backgroundColor:srcs.map(function(_,i){return COL[i%COL.length];})}],{plugins:{legend:{display:false}},indexAxis:"y",scales:{x:{min:0,max:100}}});
+  var weeks=["W-5","W-4","W-3","W-2","W-1","This Week"];
+  mkChart("ch-alerts","bar",weeks,[{label:"Critical",data:rndArr(6,1,8),backgroundColor:"#ff006e"},{label:"Warning",data:rndArr(6,5,20),backgroundColor:"#ffee00"},{label:"Info",data:rndArr(6,10,40),backgroundColor:"#00f5ff"}],{plugins:{legend:{labels:{color:"#aaa"}}}});
+}
+
+// ── Filters ────────────────────────────────────────────────────────────────────
+function populateFilters(){
+  Promise.all([getOpts("kee","highway"),getOpts("kee","direction"),getOpts("kee","fiscal_year"),getOpts("kee","station")]).then(function(res){
+    [["gf-highway","All Highways"],["gf-dir","All Directions"],["gf-fy","All FYs"],["gf-stn","All Stations"]].forEach(function(pair,i){
+      var sel=document.getElementById(pair[0]);
+      sel.innerHTML='<option value="">'+pair[1]+'</option>';
+      (res[i]||[]).forEach(function(o){sel.innerHTML+='<option value="'+(o.value||o)+'">'+(o.label||o.value||o)+'</option>';});
+    });
+  });
+}
+loadConfig().then(function(){populateFilters();loadITS();});
+</script>
+</body>
+</html>
