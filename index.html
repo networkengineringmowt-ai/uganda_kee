@@ -60,6 +60,49 @@ tr:hover td{background:#0d0d0d;}
 .vms-card .vms-msg{font-size:12px;color:#fff;background:#111;padding:6px;border-radius:4px;margin:6px 0;min-height:36px;text-align:center;}
 .vms-card .vms-status{font-size:11px;}
 .toll-lane{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#111;border-radius:4px;margin-bottom:6px;}
+
+/* ── Mobile responsiveness (additive, does not alter desktop rules above) ── */
+@media (max-width:768px){
+  html,body{overflow-x:hidden;max-width:100%;}
+  body{font-size:12px;}
+  header{padding:10px 14px;gap:10px;flex-wrap:wrap;}
+  header img{height:32px;}
+  header h1{font-size:14px;}
+  header p{font-size:10px;}
+  nav{-webkit-overflow-scrolling:touch;}
+  nav button{min-height:44px;padding:0 16px;font-size:12px;display:flex;align-items:center;justify-content:center;}
+  .tab{padding:12px;}
+  #gf-bar{padding:10px 14px;}
+  #gf-bar label{flex:1 1 140px;}
+  #gf-bar select{width:100%;min-width:0;min-height:40px;}
+  #gf-bar button{margin-top:0;align-self:flex-end;}
+  .kpis{flex-direction:column;}
+  .kpi{width:100%;min-width:0;}
+  .kpi .val{font-size:22px;}
+  .row{flex-direction:column;}
+  .col{width:100%;min-width:0;}
+  .chart-wrap{height:230px;}
+  .tbl-wrap{-webkit-overflow-scrolling:touch;}
+  table{font-size:11px;}
+  th,td{padding:9px 8px;}
+  #tab-vms > div:not([id]){flex-wrap:wrap;}
+  #vms-filter{width:100%;}
+  .vms-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
+  .toll-lane{flex-wrap:wrap;row-gap:4px;}
+  button,select{min-height:44px;}
+  .dl-bar button,.pg button{padding:0 14px;}
+}
+
+@media (max-width:480px){
+  body{font-size:11px;}
+  header h1{font-size:13px;}
+  header p{font-size:9px;}
+  .kpi .val{font-size:20px;}
+  .chart-wrap{height:200px;}
+  .vms-grid{grid-template-columns:1fr;}
+  nav button{padding:0 14px;font-size:11px;}
+  th,td{padding:7px 6px;font-size:10px;}
+}
 </style>
 </head>
 <body>
