@@ -1,0 +1,53 @@
+{
+  "date": "2026-08-20",
+  "repo": "uganda_kee",
+  "url": "https://networkengineringmowt-ai.github.io/uganda_kee/",
+  "technical": {
+    "httpStatus": 200,
+    "loadFailed": false,
+    "pageRendered": true,
+    "bodyTextLength": 628,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "TypeError: (res[i] || []).forEach is not a function",
+      "Failed to load resource: the server responded with a status of 404 ()",
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ],
+    "brokenImages": [],
+    "hashLinksFound": [],
+    "chartElementCount": 21
+  },
+  "uiCohesion": {
+    "amber": "fail",
+    "darkBackground": "fail",
+    "nav": "pass",
+    "mowtBranding": "pass"
+  },
+  "accuracy": {
+    "extractedFigures": [
+      {
+        "value": 78,
+        "raw": "78 km",
+        "context": "Toll Revenue Today (UGX)\n▲ vs yesterday"
+      }
+    ],
+    "discrepancies": []
+  },
+  "consistency": {
+    "districtList": null,
+    "notes": [
+      "uganda_nrms: no audit-log available yet for comparison",
+      "uganda_network_traffic: no audit-log available yet for comparison",
+      "uganda_ducar: no audit-log available yet for comparison",
+      "uganda_nbms: no audit-log available yet for comparison",
+      "uganda_gis_enterprise: no audit-log available yet for comparison",
+      "bridge_mculverts: no audit-log available yet for comparison",
+      "uganda_kee_rss: no audit-log available yet for comparison",
+      "uganda_ntis: no audit-log available yet for comparison"
+    ]
+  }
+}
