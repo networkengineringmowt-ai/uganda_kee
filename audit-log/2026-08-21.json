@@ -21,12 +21,6 @@
     "hashLinksFound": [],
     "chartElementCount": 21
   },
-  "uiCohesion": {
-    "amber": "fail",
-    "darkBackground": "fail",
-    "nav": "pass",
-    "mowtBranding": "pass"
-  },
   "accuracy": {
     "extractedFigures": [
       {
